@@ -1,5 +1,5 @@
 
-use framing_rental
+use farming_rental
 
 create table admin_details(
 	admin_id varchar(max),
@@ -40,8 +40,10 @@ create table equipment_details(
 create table equipment_reviews(
   equipment_id varchar(max),
   belongs_to varchar(max),
+  review_by varchar(max),
   rating varchar(max),
-  review varchar(max)
+  review varchar(max),
+  reviewed_on datetime
 )
 
 create table payment_details(

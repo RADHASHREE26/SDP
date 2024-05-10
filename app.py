@@ -32,6 +32,18 @@ conn = sqlalchemy.create_engine(db_string)
 
 # conn = pymssql.connect(server='Radhashree', user='Bose01', password='Bose01', database='farming_rental')
 
+def from_dict(self, p_dict):
+    for x in self.__table__.columns:
+        if x.name in p_dict.keys():
+            if isinstance(x.type, db.DateTime):
+                setattr(self, x.name, datetime.strptime(
+                    p_dict.get(x.name), '%Y-%m-%d %H:%m:%S'))
+            elif isinstance(x.type, db.Data):
+                setattr(self, x.name, datetime.strptime(
+                    p_dict.get(x.name), '%Y-%m-%d'))
+            else:
+                setattr(self, x.name, p_dict.get(x.name))
+
 @app.route('/user_login', methods = ['GET', 'POST'])
 def user_login():
     if request.method == 'POST':
@@ -83,9 +95,14 @@ def user_signup():
 @app.route('/account_update', methods = ['GET','POST'])
 def credentials_update():
     if request.method == 'POST':
-        data = json.loads(request.data)
+        data = request.get_json()
         user_id = data['user_id']
-        db_entry = db.session.query()
+        db_entry = db.session.query(UserDetails).filter(UserDetails.user_id == user_id).first()
+        from_dict(db_entry, data)
+        db_entry.updated_on = datetime.now()
+        db.session.commit()
+        return jsonify({"status":"User Details updated"}), 201
+        
 
 
 if __name__ == '__main__':
