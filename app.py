@@ -1,7 +1,7 @@
 import datetime
 import json
 import pymssql
-from sqlalchemy import and_
+from sqlalchemy import and_, desc
 from flask import Flask, render_template, request, Response, jsonify
 from flask_restful import Api, Resource
 from flask_sqlalchemy import SQLAlchemy
@@ -42,7 +42,7 @@ def from_dict(self, p_dict):
                 setattr(self, x.name, datetime.strptime(
                     p_dict.get(x.name), '%Y-%m-%d'))
             else:
-                setattr(self, x.name, p_dict.get(x.name))
+                setattr(self, x.name, p_dict.get(x.name))c
 
 @app.route('/user_login', methods = ['GET', 'POST'])
 def user_login():
@@ -102,8 +102,57 @@ def credentials_update():
         db_entry.updated_on = datetime.now()
         db.session.commit()
         return jsonify({"status":"User Details updated"}), 201
-        
+    # else:
+    #     data = json.loads(request.data)
+    #     user_id = data['user_id']
+    #     db_entry = db.session.query(UserDetails).filter(UserDetails.user_id == user_id).first()
 
+
+@app.route('/equipment_lending/<user_id>', methods=['GET','POST'])
+def equipment_lending(user_id):
+    if request.method == 'POST':
+        data = json.loads(request.data)
+        user_id = data['user_id']
+        new_equiment_id = 0
+        db_entry = db.session.query(EquipmentDetails).filter(EquipmentDetails.user_id == user_id).order_by(desc(EquipmentDetails.equipment_id)).first()
+        if db_entry:
+            last_equiment_id = db_entry.equipment_id
+            number_part = int(last_equiment_id[1:])
+            new_number_part = number_part + 1
+            new_equiment_id = "E" + str(new_number_part)
+        else:
+            new_equiment_id = "E1"
+            db_entry = EquipmentDetails()
+            db_entry.equipment_id = new_equiment_id
+            db_entry.belongs_to = user_id
+            db_entry.equipment_name = data['equipment_name']
+            db_entry.equipment_type = data['equipment_type']
+            db_entry.equipment_description = data['equipment_description']
+            db_entry.age = data['age']
+            db_entry.location = data['location']
+            db_entry.rent = data['rent']
+            db_entry.availability = data['availability']
+            db_entry.payment_id = None
+            db.session.add(db_entry)
+            db.session.commit()
+    else:
+        db_entry = db.session.query(EquipmentDetails).filter(EquipmentDetails.belongs_to == user_id).all()
+        equipments_list = []
+        for i in db_entry:
+            c = {}
+            c = {
+                "equipment_id": i.equipment_id,
+                "equipment_name": i.equipment_name,
+                "equipment_type": i.equipment_type,
+                "equipment_description": i.equipment_description,
+                "age": i.age,
+                "location": i.location,
+                "rent": i.rent,
+                "availability": i.availability
+            }
+            equipments_list.append(c)
+        return equipments_list
+        
 
 if __name__ == '__main__':
     app.run()
