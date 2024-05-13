@@ -194,6 +194,19 @@ def search_product():
             equipments_list.append(c)
         return equipments_list
         
+@app.route('/platform_review', methods = ['GET','POST'])
+def platform_review():
+    if request.method == 'POST':
+        data = json.loads(request.data)
+        db_entry = PlatformReview()
+        db_entry.user_id = data['user_id']
+        db_entry.rating = data['rating']
+        db_entry.review = data['review']
+        db_entry.updated_on = data['updated_on']
+        db.session.add(db_entry)
+        db.session.commit()
+    return jsonify({"status":"created"}), 201
+
 
 if __name__ == '__main__':
     app.run()

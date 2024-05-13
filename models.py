@@ -76,3 +76,11 @@ class UserSaleDetails(db.Model):
     return_date = db.Column(db.DateTime)
     earning = db.Column(db.Integer)
 
+class PlatformReview(db.Model):
+    __tablename__ = 'platform_review'
+    __table_args__ = {"schema":"dbo"}
+    id = db.Column(db.Integer, promary_key = True)
+    user_id = db.Column(db.String(300))
+    rating = db.Column(db.Integer)
+    review = db.Column(db.String)
+    updated_on = db.Column(db.DateTime)
