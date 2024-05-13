@@ -1,7 +1,7 @@
 import datetime
 import json
 import pymssql
-from sqlalchemy import and_, desc
+from sqlalchemy import and_, desc, or_
 from flask import Flask, render_template, request, Response, jsonify
 from flask_restful import Api, Resource
 from flask_sqlalchemy import SQLAlchemy
@@ -137,6 +137,47 @@ def equipment_lending(user_id):
             db.session.commit()
     else:
         db_entry = db.session.query(EquipmentDetails).filter(EquipmentDetails.belongs_to == user_id).all()
+        equipments_list = []
+        for i in db_entry:
+            c = {}
+            c = {
+                "equipment_id": i.equipment_id,
+                "equipment_name": i.equipment_name,
+                "equipment_type": i.equipment_type,
+                "equipment_description": i.equipment_description,
+                "age": i.age,
+                "location": i.location,
+                "rent": i.rent,
+                "availability": i.availability
+            }
+            equipments_list.append(c)
+        return equipments_list
+    
+@app.route('/product_details/<user_id>/<equipment_id>', methods = ['GET','POST'])
+def product_details(user_id, equipment_id):
+    db_entry = db.session.query(EquipmentDetails).filter(and_(EquipmentDetails.equipment_id == equipment_id, EquipmentDetails.belongs_to == user_id, EquipmentDetails.availability == 'Y')).first()
+    if db_entry:
+        c = {}
+        c = {
+            "equipment_id": db_entry.equipment_id,
+            "equipment_name": db_entry.equipment_name,
+            "equipment_type": db_entry.equipment_type,
+            "equipment_description": db_entry.equipment_description,
+            "age": db_entry.age,
+            "location": db_entry.location,
+            "rent": db_entry.rent,
+            "availability": db_entry.availability
+        }
+        return c
+    else:
+        return jsonify({"status":"product information not found"})
+    
+@app.route('/search_product', methods = ['GET','POST'])
+def search_product():
+    if request.method == 'POST':
+        data = json.loads(request.data)
+        match_word = data['word']
+        db_entry = db.session.query(EquipmentDetails).filter(or_(EquipmentDetails.equipment_type == match_word, EquipmentDetails.equipment_description.like(f"%{match_word}%")), EquipmentDetails.equipment_name.like(f"%{match_word}")).all()
         equipments_list = []
         for i in db_entry:
             c = {}
