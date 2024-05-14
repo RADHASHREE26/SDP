@@ -45,7 +45,7 @@ def from_dict(self, p_dict):
                 setattr(self, x.name, datetime.strptime(
                     p_dict.get(x.name), '%Y-%m-%d'))
             else:
-                setattr(self, x.name, p_dict.get(x.name))c
+                setattr(self, x.name, p_dict.get(x.name))
 
 @app.route('/user_login', methods = ['GET', 'POST'])
 def user_login():
