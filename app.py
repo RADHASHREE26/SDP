@@ -9,6 +9,9 @@ from flask_cors import CORS
 import logging
 import sqlalchemy
 from models import *
+import mail
+from metadata import *
+
 
 app = Flask(__name__)
 
@@ -89,6 +92,12 @@ def user_signup():
         db.session.add(db_entry)
         db.session.commit()
 
+        subject = f"Hi {data['username']}. You have registered with FarmEasy."
+
+        body = registration_email_body.format(data['username'])
+
+        mail.sendmail([data['email']], subject, body)
+
     return jsonify({"status": "created"}), 201
 
 
@@ -101,6 +110,10 @@ def credentials_update():
         from_dict(db_entry, data)
         db_entry.updated_on = datetime.now()
         db.session.commit()
+
+        subject = f"Hi {db_entry['username']}. Your FarmEasy account has been updated."
+        body = account_update_email.format(db_entry['username'])
+        mail.sendmail([db_entry.contact_email], subject, body)
         return jsonify({"status":"User Details updated"}), 201
     # else:
     #     data = json.loads(request.data)
