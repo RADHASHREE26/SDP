@@ -181,6 +181,16 @@ def product_details(user_id, equipment_id):
             "rent": db_entry.rent,
             "availability": db_entry.availability
         }
+        db_entry1 = db.session.query(EquipmentReviews).filter(and_(EquipmentReviews.equipment_id == equipment_id, EquipmentDetails.belongs_to == user_id)).all()
+        reviews_dict = []
+        for i in db_entry1:
+            reviews_dict.append({
+                'user_id': i.review_by,
+                'rating': i.rating,
+                'review': i.review,
+                'time_of_review': i.reviewed_on
+            })
+        c['review_details'] = reviews_dict
         return c
     else:
         return jsonify({"status":"product information not found"})
@@ -206,6 +216,20 @@ def search_product():
             }
             equipments_list.append(c)
         return equipments_list
+    
+@app.route('/equipment_review', methods = ['GET','POST'])
+def equipment_review(equipment_id, user_id):
+    if request.method == 'POST':
+        data = json.loads(request.data)
+        equipment_id = data['equipment_id']
+        user_id = data['belongs_to']
+        db_entry = db.session.query(EquipmentReviews).filter(and_(EquipmentReviews.equipment_id == equipment_id, EquipmentReviews.belongs_to == user_id)).first()
+        db_entry.rating = data['rating']
+        db_entry.review = data['review']
+        db_entry.review_by = data['user_id']
+        db_entry.reviewed_on = datetime.now()
+        db.session.add(db_entry)
+        db.session.commit()
         
 @app.route('/platform_review', methods = ['GET','POST'])
 def platform_review():
