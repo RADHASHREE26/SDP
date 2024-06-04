@@ -19,7 +19,7 @@ class UserDetails(db.Model):
     contact_email = db.Column(db.String(300))
     address = db.Column(db.String)
     created_on = db.Column(db.DateTime)
-    updated_on = db.Column(db.Datetime)
+    updated_on = db.Column(db.DateTime)
 
 class AdminDetails(db.Model):
     __tablename__ = 'admin_details'
@@ -53,7 +53,7 @@ class EquipmentReviews(db.Model):
     review_by = db.Column(db.String(300))
     rating = db.Column(db.Integer)
     review = db.Column(db.String(300))
-    reviewed_on = db.Column(db.Datetime)
+    reviewed_on = db.Column(db.DateTime)
 
 class UserPurchaseDetails(db.Model):
     __tablename__ = 'user_purchase_details'
@@ -71,7 +71,7 @@ class UserSaleDetails(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     user_id = db.Column(db.String(300))
     equipment_lended = db.Column(db.String(300))
-    rented_to = db.Column(db.Column(db.String(300)))
+    rented_to = db.Column(db.String(300))
     lend_date = db.Column(db.DateTime)
     return_date = db.Column(db.DateTime)
     earning = db.Column(db.Integer)
@@ -79,7 +79,7 @@ class UserSaleDetails(db.Model):
 class PlatformReview(db.Model):
     __tablename__ = 'platform_review'
     __table_args__ = {"schema":"dbo"}
-    id = db.Column(db.Integer, promary_key = True)
+    id = db.Column(db.Integer, primary_key = True)
     user_id = db.Column(db.String(300))
     rating = db.Column(db.Integer)
     review = db.Column(db.String)
