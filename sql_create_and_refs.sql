@@ -38,6 +38,7 @@ create table equipment_details(
   [location] varchar(max),
   rent integer,
   [availability] varchar(max),
+  image_file VARBINARY(max),
   payment_id varchar(max)
 )
 

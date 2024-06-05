@@ -42,6 +42,7 @@ class EquipmentDetails(db.Model):
     location = db.Column(db.String(300))
     rent = db.Column(db.Integer)
     availability = db.Column(db.String(300))
+    image_file = db.Column(db.LargeBinary)
     payment_id = db.Column(db.String(300))
 
 class EquipmentReviews(db.Model):

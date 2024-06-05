@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 import json
 import pymssql
 from sqlalchemy import and_, desc, or_
@@ -8,18 +8,23 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import logging
 import sqlalchemy
-from models import *
 import mail
 from metadata import *
 
 
+
 app = Flask(__name__)
+CORS(app)
+
+app.debug = True
 
 db_string = "mssql+pymssql://Bose01:Bose01@Radhashree:1433/farming_rental"
 app.config['SQLALCHEMY_DATABASE_URI'] = db_string
 
 
 db = SQLAlchemy(app)
+
+from models import *
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -50,29 +55,35 @@ def from_dict(self, p_dict):
 @app.route('/user_login', methods = ['GET', 'POST'])
 def user_login():
     if request.method == 'POST':
-        data = json.loads(request.data)
-        var_user_id = data['user_id']
-        var_user_pw = data['user_pw']
+        print('im here')
+        data = request.get_json()
+        var_user_id = data['userId']
+        var_user_pw = data['password']
         print(data)
         db_entry = db.session.query(UserCredentials).filter(and_(UserCredentials.user_id == var_user_id, UserCredentials.user_pw == var_user_pw)).first()
         print(db_entry)
         if db_entry:
-            return jsonify({'status':'valid user'})
+            return jsonify({'status':'valid user', 'userId': var_user_id}), 200
         else:
-            return jsonify({'status':'invalid user'})
+            return jsonify({'status':'invalid user'}), 400
     return jsonify({"status":"ok"}), 200
         
 @app.route('/user_signup', methods = ['GET','POST'])
 def user_signup():
     if request.method == 'POST':
-        print(request.data)
-        data = json.loads(request.data)
+        data = request.get_json()
+        if not data:
+            return jsonify({"status": "Invalid input"}), 400
+        print(data)
         username = data['username']
         address = data['address']
         email = data['email']
-        contact_number = data['contact_number']
-        user_id = data['user_id']
-        user_pw = data['user_pw']
+        contact_number = data['phone']
+        user_id = data['userId']
+        db_check = db.session.query(UserCredentials).filter(UserCredentials.user_id == user_id).first()
+        if db_check:
+            return jsonify({"status":"user id already exists"}), 401
+        user_pw = data['password']
         created_on = datetime.now()
 
         db_entry = UserCredentials()
@@ -121,11 +132,12 @@ def credentials_update():
     #     db_entry = db.session.query(UserDetails).filter(UserDetails.user_id == user_id).first()
 
 
-@app.route('/equipment_lending/<user_id>', methods=['GET','POST'])
+@app.route('/<user_id>/equipment_lending', methods=['GET','POST'])
 def equipment_lending(user_id):
     if request.method == 'POST':
-        data = json.loads(request.data)
-        user_id = data['user_id']
+        data = request.get_json()
+        if user_id == None:
+            user_id = data['userId']
         new_equiment_id = 0
         db_entry = db.session.query(EquipmentDetails).filter(EquipmentDetails.user_id == user_id).order_by(desc(EquipmentDetails.equipment_id)).first()
         if db_entry:
@@ -146,6 +158,9 @@ def equipment_lending(user_id):
             db_entry.rent = data['rent']
             db_entry.availability = data['availability']
             db_entry.payment_id = None
+            image_file = request.files['image_file']
+            image_data = image_file.read()
+            db_entry.image_file=image_data,
             db.session.add(db_entry)
             db.session.commit()
     else:
@@ -166,7 +181,7 @@ def equipment_lending(user_id):
             equipments_list.append(c)
         return equipments_list
     
-@app.route('/product_details/<user_id>/<equipment_id>', methods = ['GET','POST'])
+@app.route('/<user_id>/<equipment_id>/product_details', methods = ['GET','POST'])
 def product_details(user_id, equipment_id):
     db_entry = db.session.query(EquipmentDetails).filter(and_(EquipmentDetails.equipment_id == equipment_id, EquipmentDetails.belongs_to == user_id, EquipmentDetails.availability == 'Y')).first()
     if db_entry:
@@ -246,4 +261,4 @@ def platform_review():
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug = True)
